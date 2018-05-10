@@ -1,0 +1,208 @@
+<script src="../simpletest.js"></script>
+
+<script>
+
+// Notes: reduce functionality
+// Syntax: reduce(callback[, initialValue])
+
+// Function Signature:
+// - callback:
+//    - accumulator:
+//    - currentValue: (array[i])
+//    - currentIndex: i
+//    - array
+// - initialValue
+// Return Value: The value that results from the reduction
+
+
+// Requirements:
+
+// reduce() executes the callback once for each element present in the array, excluding holes
+
+// Case A: initalValue is provided
+// - accumulator will be the initialValue
+// - currentValue will be the first element
+// - the callback will execute at index 0
+// - If the array is empty, then the initalValue will be returned, without executing callback
+    // reduce([], function {}, 2) ===> 2
+
+// Case B: initialValue is not provided
+// - accumulator will be the first element
+// - currentValue will be the second element
+// - the callback will execute at index 1
+// - If the array has one element (regardless of position), solo value is returned without executing callback
+    // reduce([1], function() {}) ===> 1
+    // reduce([, , 1], function() {}) ===> 1
+
+// The function should actually reduce
+// The function should exclude holes
+// If the array is empty and no initialValue is provided, then TypeError
+    // reduce([], function() {}) ===> TypeError;
+// It should pass array as fourth element of callback
+
+
+
+// Function Prototype
+function reduce(array, callback, initialValue) {
+  var startingIndex = 0;
+  var accumulator = initialValue;
+  var arrayLength = array.length; //Need a fixed length for the array.
+  var arrayIndexes = Object.keys(array);
+
+  if (arguments.length < 3) { //Has no initialValue.
+    var startingEnumerableIndex = arrayIndexes[0];
+
+    if (arrayIndexes.length === 0) { //Array is empty.
+      throw new TypeError("Reduce of empty array with no initial value");
+    }
+
+    if (arrayIndexes.length === 1) { //Array only has one element.
+      var enumerableElement = array[startingEnumerableIndex];
+      return enumerableElement;
+    }
+
+    accumulator = array[startingEnumerableIndex];
+    startingIndex = ++startingEnumerableIndex;
+
+  } else { //Has initialValue.
+    if (arrayIndexes.length === 0) { //Array is empty.
+      return initialValue;
+    }
+  }
+
+  for (var i = startingIndex; i < arrayLength; i++) {
+    if (i in array) {
+      var accumulator = callback(accumulator, array[i], i, array);
+    }
+  }
+
+  return accumulator;
+}
+
+tests({
+
+  'If initialValue, it should execute the callback array.length times'
+  : function() {
+      var numberOfCallbackExecutions = 0;
+      reduce([1, 2, 3], function() {
+        numberOfCallbackExecutions++;
+      }, 5);
+      eq(numberOfCallbackExecutions, 3);
+    },
+
+  'If no initalValue, it should execute the callback array.length - 1 times'
+  : function() {
+      var numberOfCallbackExecutions = 0;
+      reduce([1, 2, 3], function() {
+        numberOfCallbackExecutions++;
+      });
+      eq(numberOfCallbackExecutions, 2);
+    },
+
+  'If initalValue, accumulator will be the initalValue'
+  : function() {
+      reduce([1], function(accumulator) {
+        eq(accumulator, 5);
+      }, 5);
+    },
+
+  'If initalValue, currentValue will be the first element'
+  : function() {
+      reduce([1], function(accumulator, currentValue) {
+        eq(currentValue, 1);
+      }, 5);
+    },
+
+  'If initalValue, the callback will execute at index 0'
+  : function() {
+      reduce([1], function(accumulator, currentValue, currentIndex) {
+        eq(currentIndex, 0)
+      }, 5);
+    },
+
+  'If no initalValue, accumulator will be the first element'
+  : function() {
+      reduce([1, 2], function(accumulator) {
+        eq(accumulator, 1);
+      });
+    },
+
+  'If no initalValue, currentValue will be the second element'
+  : function() {
+      reduce([1, 2], function(accumulator, currentValue) {
+        eq(currentValue, 2);
+      });
+    },
+
+  'If no initalValue, the callback will execute at index 1'
+  : function() {
+      reduce([1, 2], function(accumulator, currentValue, currentIndex) {
+        eq(currentIndex, 1);
+      });
+    },
+
+  'If initialValue, and the array is empty, then the initalValue will be returned, without executing callback'
+  : function() {
+      var numberOfCallbackExecutions = 0;
+      var initialValue = 1;
+      var returnedResult = reduce([ , , , ], function() {
+        numberOfCallbackExecutions++;
+      }, initialValue);
+      eq(numberOfCallbackExecutions, 0);
+      eq(returnedResult, initialValue);
+    },
+
+  'If no initalValue, and the array has one element (regardless of position), solo value is returned without executing callback'
+  : function() {
+      var numberOfCallbackExecutions = 0;
+      var returnedResult = reduce([ , , 3], function() {
+        numberOfCallbackExecutions++;
+      });
+      eq(numberOfCallbackExecutions, 0);
+      eq(returnedResult, 3);
+    },
+
+  'It should actually reduce'
+  : function() {
+      var returnedResult = reduce([1, 2, 3], function(accumulator, currentValue) {
+        return accumulator + currentValue;
+      });
+      eq(returnedResult, 6);
+    },
+
+  'If initialValue, It should exclude holes'
+  : function() {
+      var returnedResult = reduce([ , 1, , 3, ], function(accumulator, currentValue) {
+        return accumulator + currentValue;
+      }, 1);
+      eq(returnedResult, 5);
+    },
+
+  'If no initialVale, it should exclude holes too'
+  : function () {
+      var returnedResult = reduce([ , 1, , 3, ], function(accumulator, currentValue) {
+        return accumulator + currentValue;
+      });
+      eq(returnedResult, 4);
+    },
+
+  'If no initialValue, and the array is empty, then throw TypeError'
+  : function() {
+      try {
+        reduce([], function() {})
+      } catch(e) {
+        eq(e instanceof TypeError, true);
+      }
+    },
+
+  'It should pass array as fourth element of callback'
+  : function() {
+    var passedInArray = [1, 2, 3]
+      reduce(passedInArray, function(accumulator, currentValue, currentIndex, callbackArray) {
+        eq(passedInArray, callbackArray);
+      });
+    }
+
+});
+
+</script>

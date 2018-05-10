@@ -1,0 +1,85 @@
+<script src="../tinytest.js"></script>
+
+<script>
+
+//Example 1)
+//forEach([1, 2, 3], function() {
+//  console.log('hi');
+//})
+
+//Example 2)
+//forEach([1, 2, 3], function(element) {
+//  console.log(element);
+//})
+
+//Example 3)
+//forEach([1, 2, 3], function(element, index) {
+//  console.log(index);
+//})
+
+//Example 4)
+//forEach([1, 2, 3], function(element, index, originalArray) {
+//  console.log(originalArray);
+//})
+
+//Example 5)
+//forEach([1, 2, 3], function(element, index, originalArray) {
+//  console.log(this);
+//}, objectReferredAsThis)
+
+
+function forEach(array, callback, objectReferredAsThis) {
+  var forEachCallback = callback;
+
+  if (arguments.length === 3) { //Checks for an entered third parameter object.
+    forEachCallback = callback.bind(objectReferredAsThis);
+  }
+
+  for (var i = 0; i < array.length; i++) {
+    forEachCallback(array[i], i, array);
+  }
+}
+
+tests({
+
+  'It should run the call back function array.length times'
+  : function() {
+    var counter = 0;
+    forEach([1, 2, 3], function() {
+      counter++;
+    })
+    eq(counter, 3)
+  },
+
+  'It should pass in the ith element as the first argument to the callback'
+  : function() {
+    forEach([5], function(element) {
+      eq(element, 5);
+    })
+  },
+
+  'It should have access to the index of the current element being processed in the array'
+  : function() {
+    forEach([0, 1, 2], function(element, index) {
+      eq(element, index)
+    })
+  },
+
+  'It should have access to the original array as the third argument of the callback.'
+  : function() {
+    var testArray = [1, 2, 3]
+    forEach(testArray, function(element, index, originalArray) {
+      eq(originalArray, testArray);
+    })
+  },
+
+  'The third argument passed into forEach should be a configurable this object.'
+  : function() {
+    forEach([1, 2, 3], function(element, index, originalArray) {
+      eq(this.name, 'Poonsy')
+    }, {name: 'Poonsy'})
+  }
+
+});
+
+</script>
